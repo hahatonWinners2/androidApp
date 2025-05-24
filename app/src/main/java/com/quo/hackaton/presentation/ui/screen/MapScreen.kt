@@ -1,7 +1,6 @@
 package com.quo.hackaton.presentation.ui.screen
 
 import android.Manifest
-import android.location.Location
 import android.os.Looper
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -32,7 +31,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.quo.hackaton.R
-import com.quo.hackaton.utils.sortedByDistanceTo
+import com.quo.hackaton.utils.haversineDistance
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.RequestPoint
@@ -82,22 +81,34 @@ fun MapScreen(
 }
 
 @Composable
-private fun MapViewContainer(
-    companies: List<Company>,
+fun MapViewContainer(
+    companies: List<Company>
 ) {
     val context = LocalContext.current
     var mapView: MapView? by remember { mutableStateOf(null) }
 
-    val remaining = companies.filter { it.status == Status.PENDING }
-    val cameraPosition = CameraPosition(
-        Point(remaining.firstOrNull()?.lat ?: 0.0, remaining.firstOrNull()?.lon ?: 0.0),
-        12.0f, 0.0f, 0.0f,
-    )
-    var points = mutableListOf<RequestPoint>()
+    // Получаем отфильтрованный список
+    val remaining = remember(companies) { companies.filter { it.status == Status.PENDING } }
 
+    // Состояние локации пользователя
+    var userLocation by remember { mutableStateOf<Point?>(null) }
+
+    // Запросим локацию один раз при старте Composable
+    LaunchedEffect(context) {
+        val fused = LocationServices.getFusedLocationProviderClient(context)
+        fused.lastLocation.addOnSuccessListener { loc ->
+            loc?.let {
+                userLocation = Point(it.latitude, it.longitude)
+            } ?: run {
+                requestLocationUpdates()
+            }
+        }
+    }
+
+    // Жизненный цикл для MapView
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
-        val obs = LifecycleEventObserver { _, event ->
+        val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> {
                     mapView?.onStart()
@@ -110,8 +121,8 @@ private fun MapViewContainer(
                 else -> {}
             }
         }
-        lifecycleOwner.lifecycle.addObserver(obs)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     AndroidView(
@@ -121,52 +132,65 @@ private fun MapViewContainer(
             }
         },
         update = { mv ->
-            mv.mapWindow.map.move(
-                cameraPosition,
-                Animation(Animation.Type.SMOOTH, 0.1f),
-                null,
-            )
+            val map = mv.mapWindow.map
+            // Устанавливаем первоначальную позицию камеры
+            remaining.firstOrNull()?.let {
+                map.move(
+                    CameraPosition(Point(it.lat, it.lon), 12f, 0f, 0f),
+                    Animation(Animation.Type.SMOOTH, 0.1f),
+                    null
+                )
+            }
 
-            val mapObjects = mv.mapWindow.map.mapObjects.addCollection()
+            // Добавляем маркеры компаний
+            val mapObjects = map.mapObjects
             mapObjects.clear()
-
-            val imageProvider = ImageProvider.fromResource(mv.context, R.drawable.placemark)
-            remaining.forEach { address ->
+            val companyIcon = ImageProvider.fromResource(context, R.drawable.placemark)
+            remaining.forEach { comp ->
                 mapObjects.addPlacemark().apply {
-                    val point = Point(address.lat, address.lon)
-                    geometry = point
-                    points.add(RequestPoint(point, RequestPointType.WAYPOINT,
-                        null, null, null)
-                    )
-                    setIcon(imageProvider)
+                    geometry = Point(comp.lat, comp.lon)
+                    setIcon(companyIcon)
                 }
             }
 
-
-            fusedLocationClient = LocationServices
-                .getFusedLocationProviderClient(context)
-
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location: Location? ->
-                    location?.let {
-                        val lat = 43.401720
-                        val lon = 39.980124
-                        Log.d("Location", "Широта: $lat, Долгота: $lon")
-                        mapObjects.addPlacemark().apply {
-                            geometry = Point(lat, lon)
-                            setIcon(ImageProvider.fromResource(mv.context, R.drawable.user_marker))
-                        }
-                        points = points.sortedByDistanceTo(Point(lat, lon))
-                        points.add(0, RequestPoint(
-                            Point(lat, lon), RequestPointType.WAYPOINT,
-                            null, null, null)
-                        )
-                    } ?: run {
-                        requestLocationUpdates()
-                    }
+            // Если есть локация пользователя, добавляем её маркер и строим маршрут
+            userLocation?.let { userPoint ->
+                // Маркер пользователя
+                mapObjects.addPlacemark().apply {
+                    geometry = userPoint
+                    setIcon(ImageProvider.fromResource(context, R.drawable.user_marker))
                 }
 
-            drawDrivingRoutes(points, mapObjects)
+                val points = mutableListOf<RequestPoint>()
+                var sorted = remaining.map { Point(it.lat, it.lon) }.toMutableList()
+                var currentPoint = userPoint
+                while (sorted.isNotEmpty()) {
+                    sorted = sorted
+                        .sortedBy { haversineDistance(it, currentPoint) }.toMutableList()
+                    sorted.forEach { p ->
+                        Log.d("PointSort", "${p.latitude} ${p.longitude}")
+                    }
+                    val point = sorted.removeFirst()
+                    points.add(RequestPoint(point, RequestPointType.VIAPOINT,
+                        null, null, null)
+                    )
+                    currentPoint = point
+                }
+
+                points.add(0, RequestPoint(userPoint, RequestPointType.WAYPOINT,
+                    null, null, null))
+                points.lastOrNull()?.let { furthest ->
+                    points.removeLast()
+                    points.add(RequestPoint(furthest.point, RequestPointType.WAYPOINT,
+                        null, null, null))
+                }
+
+                points.forEach { p ->
+                    Log.d("Point", "${p.point.latitude} ${p.point.longitude} ${p.type}")
+                }
+
+                drawDrivingRoutes(points, mapObjects)
+            }
         },
         modifier = Modifier.fillMaxSize()
     )
@@ -197,15 +221,11 @@ private fun drawDrivingRoutes(points: List<RequestPoint>, mapObjects: MapObjectC
     val vehicleOptions = VehicleOptions()
     val drivingRouteListener = object : DrivingSession.DrivingRouteListener {
         override fun onDrivingRoutes(drivingRoutes: MutableList<DrivingRoute>) {
-            for (route in drivingRoutes) {
-                Log.d("Routes", "${route.routeId} | ${route.routePosition.heading()} | ${route.position.segmentPosition} | ${route.wayPoints.firstOrNull().toString()}")
-                mapObjects.addPolyline(route.geometry)
-                break
-            }
+            mapObjects.addPolyline(drivingRoutes.first().geometry)
         }
 
         override fun onDrivingRoutesError(error: Error) {
-            Log.d("Driving Routes", "Error: $error")
+            Log.d("Driving Routes", "Error: ${error.toString()}")
         }
     }
     val drivingSession = drivingRouter.requestRoutes(
