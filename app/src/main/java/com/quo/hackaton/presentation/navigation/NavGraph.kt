@@ -18,15 +18,15 @@ fun NavGraph() {
 
     NavHost(navController, startDestination = "list") {
         composable("list") {
-            val list by viewModel.addresses.collectAsState()
+            val list by viewModel.companies.collectAsState()
             AddressListScreen(
-                addresses = list,
-                onStatusChange = { address, status -> viewModel.onStatusChanged(address, status) },
+                companies = list,
+                onStatusChange = { company, status -> viewModel.onStatusChanged(company, status) },
                 onShowMap = { navController.navigate("map") }
             )
         }
         composable("map") {
-            MapScreen(viewModel.addresses.collectAsState().value)
+            MapScreen(viewModel.companies.collectAsState().value)
         }
     }
 }

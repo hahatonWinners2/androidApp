@@ -1,6 +1,7 @@
 [versions]
 accompanistPermissions = "0.31.1-alpha"
 agp = "8.8.2"
+automotivenavigation = "4.15.0"
 hiltAndroid = "2.56.2"
 hiltCompiler = "2.56.2"
 hiltNavigationCompose = "1.2.0"
@@ -12,8 +13,9 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.0"
 activityCompose = "1.10.1"
 composeBom = "2025.05.01"
-mapsMobile = "4.15.0-full"
+mapsMobileVersion = "4.15.0-navikit"
 navigationCompose = "2.9.0"
+playServicesLocation = "21.3.0"
 retrofit = "2.11.0"
 
 [libraries]
@@ -21,6 +23,7 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+automotivenavigation = { module = "com.yandex.mapkit.styling:automotivenavigation", version.ref = "automotivenavigation" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -36,9 +39,11 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-maps-mobile = { module = "com.yandex.android:maps.mobile", version.ref = "mapsMobile" }
+maps-mobile-v4150navikit = { module = "com.yandex.android:maps.mobile", version.ref = "mapsMobileVersion" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+roadevents = { module = "com.yandex.mapkit.styling:roadevents", version.ref = "automotivenavigation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

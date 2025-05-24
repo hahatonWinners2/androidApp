@@ -2,7 +2,7 @@ package com.quo.hackaton.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.quo.hackaton.domain.model.Address
+import com.quo.hackaton.domain.model.Company
 import com.quo.hackaton.domain.model.Status
 import com.quo.hackaton.domain.usecase.GetAddressesUseCase
 import com.quo.hackaton.domain.usecase.UpdateAddressStatusUseCase
@@ -19,20 +19,20 @@ class MainViewModel @Inject constructor(
     private val getAddresses: GetAddressesUseCase,
     private val updateStatus: UpdateAddressStatusUseCase
 ) : ViewModel() {
-    private val _addresses = MutableStateFlow<List<Address>>(emptyList())
-    val addresses: StateFlow<List<Address>> = _addresses.asStateFlow()
+    private val _companies = MutableStateFlow<List<Company>>(emptyList())
+    val companies: StateFlow<List<Company>> = _companies.asStateFlow()
 
     init {
         viewModelScope.launch {
-            _addresses.value = getAddresses()
+            _companies.value = getAddresses()
         }
     }
 
-    fun onStatusChanged(address: Address, newStatus: Status) {
+    fun onStatusChanged(company: Company, newStatus: Status) {
         viewModelScope.launch {
-            updateStatus(address.id, newStatus)
-            _addresses.update { list ->
-                list.map { if (it.id == address.id) it.copy(status = newStatus) else it }
+            updateStatus(company.id, newStatus)
+            _companies.update { list ->
+                list.map { if (it.id == company.id) it.copy(status = newStatus) else it }
             }
         }
     }

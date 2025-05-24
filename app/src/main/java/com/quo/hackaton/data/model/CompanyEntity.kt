@@ -1,8 +1,9 @@
 package com.quo.hackaton.data.model
 
-data class AddressEntity(
+data class CompanyEntity(
     val id: String,
-    val title: String,
+    val name: String,
+    val address: String,
     val lat: Double,
     val lng: Double,
     val status: String
