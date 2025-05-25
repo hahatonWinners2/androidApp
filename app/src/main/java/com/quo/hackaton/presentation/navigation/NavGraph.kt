@@ -21,7 +21,7 @@ fun NavGraph() {
             val list by viewModel.companies.collectAsState()
             AddressListScreen(
                 companies = list,
-                onStatusChange = { company, status -> viewModel.onStatusChanged(company, status) },
+                onCommentUpdate = { company, comment -> viewModel.onCommentUpdate(company, comment) },
                 onShowMap = { navController.navigate("map") }
             )
         }

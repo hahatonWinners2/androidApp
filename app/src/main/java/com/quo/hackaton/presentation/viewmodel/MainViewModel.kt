@@ -3,9 +3,8 @@ package com.quo.hackaton.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quo.hackaton.domain.model.Company
-import com.quo.hackaton.domain.model.Status
 import com.quo.hackaton.domain.usecase.GetClientsUseCase
-import com.quo.hackaton.domain.usecase.UpdateClientsStatusUseCase
+import com.quo.hackaton.domain.usecase.UpdateCommentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val getAddresses: GetClientsUseCase,
-    private val updateStatus: UpdateClientsStatusUseCase
+    private val updateComment: UpdateCommentUseCase
 ) : ViewModel() {
     private val _companies = MutableStateFlow<List<Company>>(emptyList())
     val companies: StateFlow<List<Company>> = _companies.asStateFlow()
@@ -28,11 +27,11 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onStatusChanged(company: Company, newStatus: Status) {
+    fun onCommentUpdate(company: Company, comment: String) {
         viewModelScope.launch {
-            updateStatus(company.id, newStatus)
+            updateComment(company.id, comment)
             _companies.update { list ->
-                list.map { if (it.id == company.id) it.copy(status = newStatus) else it }
+                list.map { if (it.id == company.id) it.copy(comment = comment) else it }
             }
         }
     }

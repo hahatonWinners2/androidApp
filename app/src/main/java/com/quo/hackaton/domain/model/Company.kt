@@ -8,6 +8,7 @@ data class Company(
     val address: String,
     val lat: Double,
     val lon: Double,
+    val comment: String?,
     var status: Status = Status.PENDING
 )
 

@@ -17,5 +17,6 @@ fun CompanyDTO.toDomain(): Company = Company(
     address = address,
     lat     = 0.0,
     lon     = 0.0,
+    comment = null,
     status  = Status.PENDING
 )

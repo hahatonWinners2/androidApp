@@ -63,7 +63,7 @@ val ralewayMedium = FontFamily(Font(R.font.raleway_medium, FontWeight.Medium))
 @Composable
 fun AddressListScreen(
     companies: List<Company>,
-    onStatusChange: (Company, Status) -> Unit,
+    onCommentUpdate: (Company, String) -> Unit,
     onShowMap: () -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
@@ -152,7 +152,7 @@ fun AddressListScreen(
                         .weight(0.5f)
                         .fillMaxWidth()
                         .height(32.dp),
-                    onConfirm = { selectedStatus -> onStatusChange(company, selectedStatus) }
+                    onConfirm = { comment -> onCommentUpdate(company, comment) }
                 )
             }
         }
@@ -223,6 +223,8 @@ fun CommentInput(
         cursorBrush = SolidColor(Color(0xFF2B2B2B)),
         textStyle = TextStyle(
             letterSpacing = 0.sp,
+            fontFamily = ralewayMedium,
+            fontWeight = FontWeight.Medium,
             fontSize = 14.sp,
             color = Color(0xFF2B2B2B)
         ),
@@ -262,10 +264,10 @@ fun CommentInput(
 }
 
 @Composable
-fun CompanyCard(
+fun  CompanyCard(
     company: Company,
     modifier: Modifier,
-    onConfirm: (Status) -> Unit
+    onConfirm: (String) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf<Status?>(Status.PENDING) }
@@ -394,7 +396,6 @@ fun CompanyCard(
                                         onClick = {
                                             selectedOption = Status.VIOLATION
                                             menuExpanded = false
-                                            onConfirm(Status.VIOLATION)
                                         }
                                     )
                                     Text(
@@ -410,7 +411,6 @@ fun CompanyCard(
                             onClick = {
                                 selectedOption = Status.VIOLATION
                                 menuExpanded = false
-                                onConfirm(Status.VIOLATION)
                             }
                         )
                         DropdownMenuItem(
@@ -421,7 +421,6 @@ fun CompanyCard(
                                         onClick = {
                                             selectedOption = Status.OK
                                             menuExpanded = false
-                                            onConfirm(Status.OK)
                                         }
                                     )
                                     Text(
@@ -437,7 +436,6 @@ fun CompanyCard(
                             onClick = {
                                 selectedOption = Status.OK
                                 menuExpanded = false
-                                onConfirm(Status.OK)
                             }
                         )
                     }
@@ -457,7 +455,11 @@ fun CompanyCard(
                     }
                     Spacer(modifier = Modifier.width(4.dp))
                     IconButton(
-                        onClick = { expandedComment = false },
+                        onClick = {
+                            expandedComment = false
+                            onConfirm(commentText)
+                            commentText = ""
+                        },
                         modifier = Modifier.weight(0.1f).aspectRatio(1f).padding(bottom = 18.dp)
                     ) {
                         Icon(
