@@ -1,6 +1,7 @@
 package com.quo.hackaton.presentation.ui.screen
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,14 +9,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +28,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -136,63 +146,19 @@ fun AddressListScreen(
                 items = filteredCompanies,
                 key = { it.id }
             ) { company ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEDEDED)),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = company.address,
-                                fontFamily = ralewayMedium,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 12.sp,
-                                color = Color(0xFF11A538),
-                                style = TextStyle(
-                                    letterSpacing = 0.sp,
-                                    textDecoration = TextDecoration.Underline
-                                ),
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = company.name,
-                                fontFamily = ralewayMedium,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 8.sp,
-                                color = Color(0xFF5B5959),
-                                style = TextStyle(letterSpacing = 0.sp),
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(
-                            onClick = { onStatusChange(company, Status.OK) },
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier
-                                .weight(0.5f)
-                                .height(28.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD8D8D8))
-                        ) {
-                            Text(
-                                text = "Отметить",
-                                fontFamily = ralewayMedium,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 11.sp,
-                                color = Color(0xFF2B2B2B),
-                                style = TextStyle(letterSpacing = 0.sp),
-                            )
-                        }
-                    }
-                }
+                CompanyCard(
+                    company = company,
+                    modifier = Modifier
+                        .weight(0.5f)
+                        .fillMaxWidth()
+                        .height(32.dp),
+                    onConfirm = { selectedStatus -> onStatusChange(company, selectedStatus) }
+                )
             }
         }
     }
 }
+
 
 @Composable
 fun CustomSearchField(
@@ -224,7 +190,7 @@ fun CustomSearchField(
                         shape = shape
                     )
                     .clip(shape)
-                    .padding(horizontal = 13.dp, vertical = 6.dp), // отступы под текст 12sp + padding
+                    .padding(horizontal = 13.dp, vertical = 6.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 if (query.isEmpty()) {
@@ -244,3 +210,265 @@ fun CustomSearchField(
     )
 }
 
+@Composable
+fun CommentInput(
+    commentText: String,
+    onCommentChange: (String) -> Unit,
+    onCameraClick: () -> Unit
+) {
+    BasicTextField(
+        value = commentText,
+        onValueChange = onCommentChange,
+        singleLine = true,
+        cursorBrush = SolidColor(Color(0xFF2B2B2B)),
+        textStyle = TextStyle(
+            letterSpacing = 0.sp,
+            fontSize = 14.sp,
+            color = Color(0xFF2B2B2B)
+        ),
+        decorationBox = { innerTextField ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(Color(0xFFD9D9D9), RoundedCornerShape(8.dp))
+                    .padding(start = 13.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // placeholder
+                Box(modifier = Modifier.weight(1f)) {
+                    if (commentText.isEmpty()) {
+                        Text(
+                            text = "Комментарий к нарушению…",
+                            fontFamily = ralewayMedium,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 11.sp,
+                            color = Color(0xFF5B5959),
+                            letterSpacing = 0.sp
+                        )
+                    }
+                    innerTextField()
+                }
+                IconButton(onClick = onCameraClick, modifier = Modifier.padding(4.dp)) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_camera),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun CompanyCard(
+    company: Company,
+    modifier: Modifier,
+    onConfirm: (Status) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf<Status?>(Status.PENDING) }
+    var expandedComment by remember { mutableStateOf(false) }
+    var commentText by remember { mutableStateOf("") }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFEDEDED)),
+        shape = RoundedCornerShape(10.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        modifier = Modifier.padding(top = 18.dp),
+                        text = company.address,
+                        fontFamily = ralewayMedium,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF11A538),
+                        letterSpacing = 0.sp,
+                        lineHeight = 16.sp,
+                        textDecoration = TextDecoration.Underline
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        text = company.name,
+                        fontFamily = ralewayMedium,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF5B5959),
+                        letterSpacing = 0.sp
+                    )
+                }
+                Spacer(modifier = Modifier.width(5.dp))
+                Box(modifier = Modifier.weight(0.5f)) {
+                    when (selectedOption) {
+                        Status.PENDING -> {
+                            Button(
+                                onClick = { menuExpanded = true },
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = modifier,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(
+                                        0xFFD8D8D8
+                                    )
+                                )
+                            ) {
+                                Text(
+                                    text = "Отметить",
+                                    fontFamily = ralewayMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF2B2B2B),
+                                    style = TextStyle(letterSpacing = 0.sp),
+                                )
+                            }
+                        }
+
+                        else -> {
+                            OutlinedButton(
+                                onClick = { menuExpanded = true },
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(
+                                    1.dp, when (selectedOption) {
+                                        Status.OK -> Color(0xFF11A538)
+                                        else -> Color(0xFFDD2E13)
+                                    }
+                                ),
+                                modifier = modifier,
+                                contentPadding = PaddingValues(horizontal = 8.dp),
+                            ) {
+                                Text(
+                                    text = when (selectedOption) {
+                                        Status.OK -> "Нет нарушений"
+                                        else -> "Нарушение"
+                                    },
+                                    fontFamily = ralewayMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 11.sp,
+                                    color = when (selectedOption) {
+                                        Status.OK -> Color(0xFF11A538)
+                                        else -> Color(0xFFDD2E13)
+                                    },
+                                    letterSpacing = 0.sp
+                                )
+                                if (selectedOption == Status.VIOLATION) {
+                                    IconButton(
+                                        onClick = { expandedComment = !expandedComment }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_arrow_down),
+                                            contentDescription = "Show comment",
+                                            tint = Color(0xFFDD2E13)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                        modifier = Modifier
+                            .background(Color.White)
+                            .wrapContentSize()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF7F7F7), shape = RoundedCornerShape(10.dp))
+                            .border(0.5.dp, Color(0xFF2B2B2B), shape = RoundedCornerShape(10.dp))
+                            .padding(horizontal = 12.dp),
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RadioButton(
+                                        selected = selectedOption == Status.VIOLATION,
+                                        onClick = {
+                                            selectedOption = Status.VIOLATION
+                                            menuExpanded = false
+                                            onConfirm(Status.VIOLATION)
+                                        }
+                                    )
+                                    Text(
+                                        text = "Подтвердить нарушение",
+                                        fontFamily = ralewayMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF2B2B2B),
+                                        letterSpacing = 0.sp
+                                    )
+                                }
+                            },
+                            onClick = {
+                                selectedOption = Status.VIOLATION
+                                menuExpanded = false
+                                onConfirm(Status.VIOLATION)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RadioButton(
+                                        selected = selectedOption == Status.OK,
+                                        onClick = {
+                                            selectedOption = Status.OK
+                                            menuExpanded = false
+                                            onConfirm(Status.OK)
+                                        }
+                                    )
+                                    Text(
+                                        text = "Нет нарушения",
+                                        fontFamily = ralewayMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF2B2B2B),
+                                        letterSpacing = 0.sp
+                                    )
+                                }
+                            },
+                            onClick = {
+                                selectedOption = Status.OK
+                                menuExpanded = false
+                                onConfirm(Status.OK)
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (expandedComment) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp)
+                        .background(color = Color(0xFFEDEDED), shape = RoundedCornerShape(8.dp)),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(modifier = Modifier.weight(0.9f).padding(bottom = 18.dp)) {
+                        CommentInput(commentText, { newText -> commentText = newText }, { })
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    IconButton(
+                        onClick = { expandedComment = false },
+                        modifier = Modifier.weight(0.1f).aspectRatio(1f).padding(bottom = 18.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_check),
+                            contentDescription = null,
+                            tint = Color(0xFF2B2B2B),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
