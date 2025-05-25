@@ -13,7 +13,7 @@ interface ClientsApi {
         @Query("checked") checked: Boolean = false
     ): List<CompanyDTO>
 
-    @PATCH("/suspicious_clients/{client_id}/comment")
+    @PATCH("/suspicious_clients/{client_id}/verdict")
     suspend fun addComment(
         @Path("client_id") id: String,
         @Body comment: String
