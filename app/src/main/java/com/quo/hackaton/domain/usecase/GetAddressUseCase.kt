@@ -1,11 +1,11 @@
 package com.quo.hackaton.domain.usecase
 
-import com.quo.hackaton.domain.model.Company
-import com.quo.hackaton.domain.repository.AddressRepository
+import com.quo.hackaton.domain.model.Coordinates
+import com.quo.hackaton.domain.repository.YandexRepository
 import javax.inject.Inject
 
-class GetAddressesUseCase @Inject constructor(
-    private val repo: AddressRepository
+class GetAddressUseCase @Inject constructor(
+    private val repo: YandexRepository
 ) {
-    suspend operator fun invoke(): List<Company> = repo.getAddresses()
+    suspend operator fun invoke(name: String): Coordinates = repo.getCoordinatesByText(name)
 }

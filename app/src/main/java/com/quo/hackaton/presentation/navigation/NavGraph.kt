@@ -26,7 +26,10 @@ fun NavGraph() {
             )
         }
         composable("map") {
-            MapScreen(viewModel.companies.collectAsState().value)
+            MapScreen(
+                companies = viewModel.companies.collectAsState().value,
+                onShowList = { navController.navigate("list") }
+            )
         }
     }
 }

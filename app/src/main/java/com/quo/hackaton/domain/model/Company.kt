@@ -1,11 +1,13 @@
 package com.quo.hackaton.domain.model
 
+import java.util.UUID
+
 data class Company(
-    val id: String,  // TODO STRING OR INT OR LONG OR UUID
-    val name: String,
+    val id: UUID,
+    val name: String = "ООО \"Тмыв Бабла\"",
     val address: String,
-    val lat: Double,
-    val lon: Double,
+    val lat: Double?,
+    val lon: Double?,
     var status: Status = Status.PENDING
 )
 

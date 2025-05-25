@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quo.hackaton.domain.model.Company
 import com.quo.hackaton.domain.model.Status
-import com.quo.hackaton.domain.usecase.GetAddressesUseCase
-import com.quo.hackaton.domain.usecase.UpdateAddressStatusUseCase
+import com.quo.hackaton.domain.usecase.GetClientsUseCase
+import com.quo.hackaton.domain.usecase.UpdateClientsStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,8 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getAddresses: GetAddressesUseCase,
-    private val updateStatus: UpdateAddressStatusUseCase
+    private val getAddresses: GetClientsUseCase,
+    private val updateStatus: UpdateClientsStatusUseCase
 ) : ViewModel() {
     private val _companies = MutableStateFlow<List<Company>>(emptyList())
     val companies: StateFlow<List<Company>> = _companies.asStateFlow()
