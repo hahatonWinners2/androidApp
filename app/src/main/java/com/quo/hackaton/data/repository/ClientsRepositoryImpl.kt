@@ -33,12 +33,12 @@ class ClientsRepositoryImpl@Inject constructor(
     )
 
     override suspend fun getClients(checked: Boolean): List<Company> {
-        return api.getClients().map { dto -> dto.toDomain() }
-//        return mockList
+//        return api.getClients().map { dto -> dto.toDomain() }
+        return mockList
     }
 
     override suspend fun updateComment(clientId: UUID, comment: String)  {
-//        delay(100)
-        return api.addComment(clientId.toString(), comment)
+        delay(100)
+//        return api.addComment(clientId.toString(), comment)
     }
 }

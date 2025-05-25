@@ -149,19 +149,19 @@ fun MapViewContainer(
 
             userLocation?.let { userPoint ->
                 map.move(
-                    CameraPosition(Point(45.025922, 38.968387), 12f, 0f, 0f),  // TODO
+                    CameraPosition(userPoint, 12f, 0f, 0f),
                     Animation(Animation.Type.SMOOTH, 0.1f),
                     null
                 )
 
                 mapObjects.addPlacemark().apply {
-                    geometry = Point(45.025922, 38.968387)  // TODO change
+                    geometry = userPoint
                     setIcon(ImageProvider.fromResource(context, R.drawable.user_marker))
                 }
 
                 val points = mutableListOf<RequestPoint>()
                 var sorted = remaining.map { Point(it.lat, it.lon) }.toMutableList()
-                var currentPoint = Point(45.025922, 38.968387)  // TODO change
+                var currentPoint = userPoint
                 while (sorted.isNotEmpty()) {
                     sorted = sorted
                         .sortedBy { haversineDistance(it, currentPoint) }.toMutableList()
@@ -175,7 +175,7 @@ fun MapViewContainer(
                     currentPoint = point
                 }
 
-                points.add(0, RequestPoint(Point(45.025922, 38.968387), RequestPointType.WAYPOINT,  // TODO
+                points.add(0, RequestPoint(userPoint, RequestPointType.WAYPOINT,
                     null, null, null))
                 points.lastOrNull()?.let { furthest ->
                     points.removeLast()

@@ -131,7 +131,7 @@ fun AddressListScreen(
             text = "Подготовить маршрут",
             fontFamily = ralewayMedium,
             fontWeight = FontWeight.Medium,
-            fontSize = 11.sp,
+            fontSize = 18.sp,
             color = Color(0xFF2B2B2B),
             style = TextStyle(letterSpacing = 0.sp, textDecoration = TextDecoration.Underline),
             modifier = Modifier.clickable { onShowMap() }
