@@ -6,8 +6,8 @@ data class Company(
     val id: UUID,
     val name: String = "ООО \"Тмыв Бабла\"",
     val address: String,
-    val lat: Double?,
-    val lon: Double?,
+    val lat: Double,
+    val lon: Double,
     var status: Status = Status.PENDING
 )
 

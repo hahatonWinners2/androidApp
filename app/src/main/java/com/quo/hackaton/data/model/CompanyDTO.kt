@@ -9,15 +9,13 @@ data class CompanyDTO(
     val address: String,
     val buildingType: String?,
     val suspicion: Int,
-    val lat: Double?,
-    val lng: Double?,
 )
 
 fun CompanyDTO.toDomain(): Company = Company(
     id      = UUID.fromString(id),
     name    = buildingType ?: "ООО «Тмыв Бабла»",
     address = address,
-    lat     = null,
-    lon     = null,
-    status  = if (suspicion > 0) Status.VIOLATION else Status.PENDING  // TODO
+    lat     = 0.0,
+    lon     = 0.0,
+    status  = Status.PENDING
 )

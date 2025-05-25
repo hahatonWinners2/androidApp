@@ -17,7 +17,7 @@ class GetClientsUseCase @Inject constructor(
     private val getAddressUseCase: GetAddressUseCase,
 ) {
     suspend operator fun invoke(): List<Company> = coroutineScope {
-        val rawClients = clientsRepository.getAddresses()
+        val rawClients = clientsRepository.getClients()
 
         val deferredClients: List<Deferred<Company>> = rawClients.map { dto ->
             async(Dispatchers.IO) {

@@ -31,7 +31,7 @@ class ClientsRepositoryImpl@Inject constructor(
 //        Company("12", "ООО \"Райффайзен\"","г. Сириус, ул. Молодежная, 52", 54.961944, 37.908423),
 //    )
 
-    override suspend fun getAddresses(checked: Boolean): List<Company> {
+    override suspend fun getClients(checked: Boolean): List<Company> {
         return api.getClients().map { dto -> dto.toDomain()}
     }
 

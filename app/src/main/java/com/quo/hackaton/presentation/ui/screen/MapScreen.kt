@@ -142,7 +142,7 @@ fun MapViewContainer(
             val companyIcon = ImageProvider.fromResource(context, R.drawable.placemark)
             remaining.forEach { comp ->
                 mapObjects.addPlacemark().apply {
-                    geometry = Point(comp.lat ?: 50.0, comp.lon ?: 48.0)
+                    geometry = Point(comp.lat, comp.lon)
                     setIcon(companyIcon)
                 }
             }
@@ -160,7 +160,7 @@ fun MapViewContainer(
                 }
 
                 val points = mutableListOf<RequestPoint>()
-                var sorted = remaining.map { Point(it.lat ?: 45.0, it.lon ?: 45.0) }.toMutableList()
+                var sorted = remaining.map { Point(it.lat, it.lon) }.toMutableList()
                 var currentPoint = userPoint
                 while (sorted.isNotEmpty()) {
                     sorted = sorted
