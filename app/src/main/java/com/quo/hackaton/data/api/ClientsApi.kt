@@ -5,11 +5,12 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ClientsApi {
     @GET("/clients/")
     suspend fun getClients(
-//        @Query("checked") checked: Boolean = false
+        @Query("checked") checked: Boolean = false
     ): List<CompanyDTO>
 
     @PATCH("/suspicious_clients/{client_id}/comment")
